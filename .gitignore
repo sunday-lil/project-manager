@@ -1,0 +1,12 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 秘密（令牌独立存放，绝不入库）
+.env
+
+# 本地数据
+*.db
+error.log
