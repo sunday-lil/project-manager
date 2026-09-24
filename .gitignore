@@ -10,3 +10,8 @@ __pycache__/
 # 本地数据
 *.db
 error.log
+
+# 编辑器/AI 工作区
+.trae/
+.idea/
+.vscode/
