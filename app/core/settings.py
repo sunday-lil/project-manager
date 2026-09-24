@@ -1,7 +1,7 @@
 """settings 表读写；GitHub Token 独立存放于项目根 .env（不入库）。"""
 from contextlib import closing
 
-from app.constants import ENV_FILE, SETTING_GITHUB_TOKEN
+from app.constants import ENV_FILE, SETTING_GITHUB_TOKEN, SETTING_SCAN_ROOT
 from app.core.db import get_connection
 
 
