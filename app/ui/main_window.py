@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QLabel, QMainWindow, QTabWidget
 from app.constants import APP_NAME
 from app.core.settings import get_github_token
 from app.services import repo_service, workspace_service
+from app.services.github_service import GithubService
 from app.ui.dialogs.settings_dialog import SettingsDialog
 from app.ui.tabs.github_tab import GithubTab
 from app.ui.tabs.kanban_tab import KanbanTab
