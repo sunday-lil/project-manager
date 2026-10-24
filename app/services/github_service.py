@@ -4,7 +4,7 @@ import time
 from typing import Optional
 
 import requests
-from github import Github, Auth, GithubException, RateLimitExceededException
+from github import Auth, Github, GithubException, RateLimitExceededException
 from github.GithubException import BadCredentialsException, UnknownObjectException
 
 _MAX_ITEMS = 100  # 列表最多拉取条数（控制分页请求数，避免快速耗尽 API 配额）
@@ -112,11 +112,33 @@ class GithubService:
                             "branch": f"{p.head.ref} → {p.base.ref}",
                             "merged": p.merged_at is not None,  # 列表接口含 merged_at，避免逐条补全请求
                             "draft": p.draft,
+                            "body": p.body or "",
                             "updated_at": p.updated_at.strftime("%m-%d %H:%M"),
                             "url": p.html_url})
             return out
         except GithubException as e:
             raise RuntimeError(_friendly_error(e, "获取 Pull Requests")) from e
+
+    @_retry_network()
+    def issue_detail(self, owner_repo: str, number: int) -> dict:
+        """Issue 正文 + 最近评论，供详情对话框使用。"""
+        try:
+            it = self._gh.get_repo(owner_repo).get_issue(number)
+            comments = []
+            for c in it.get_comments():
+                if len(comments) >= 50:
+                    break
+                comments.append({"author": c.user.login if c.user else "",
+                                 "body": c.body or "",
+                                 "created_at": c.created_at.strftime("%Y-%m-%d %H:%M")})
+            return {"number": it.number, "title": it.title, "state": it.state,
+                    "author": it.user.login if it.user else "",
+                    "labels": [l.name for l in it.labels],
+                    "body": it.body or "", "url": it.html_url,
+                    "updated_at": it.updated_at.strftime("%Y-%m-%d %H:%M"),
+                    "comments": comments}
+        except GithubException as e:
+            raise RuntimeError(_friendly_error(e, "获取 Issue 详情")) from e
 
     # ---------- 写操作 ----------
 

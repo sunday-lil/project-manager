@@ -1,22 +1,18 @@
-"""通用线程封装：任意阻塞函数丢进 QThreadPool，结果通过信号回到 UI 线程。"""
+"""通用线程封装：任意阻塞函数丢进 QThreadPool，结果通过信号回到 UI 线程。
+
+注意：QRunnable 必须被 Python 强引用到回调送达为止，否则 PySide 会提前回收
+wrapper，信号静默丢失（异步操作看起来“永远没反应”）。
+"""
+import logging
 import traceback
 from typing import Any, Callable
 
-from PySide6.QtCore import QObject, QRunnable, QThreadPool, Signal
+from PySide6.QtCore import QObject, QRunnable, QThreadPool, QTimer, Signal
 
-from app.constants import DB_DIR
+log = logging.getLogger(__name__)
 
-_LOG_FILE = DB_DIR / "error.log"
-
-
-def _log_error(exc: Exception) -> None:
-    """把后台线程异常完整堆栈写入日志文件，便于定位问题。"""
-    try:
-        DB_DIR.mkdir(parents=True, exist_ok=True)
-        with open(_LOG_FILE, "a", encoding="utf-8") as f:
-            f.write(traceback.format_exc() + "\n\n")
-    except OSError:
-        pass  # 日志失败不影响主流程
+# 正在执行的 worker 强引用集合，回调信号送达后延迟释放
+_workers: set["FunctionWorker"] = set()
 
 
 class WorkerSignals(QObject):
@@ -29,14 +25,14 @@ class FunctionWorker(QRunnable):
         super().__init__()
         self.fn = fn
         self.signals = WorkerSignals()
-        self.setAutoDelete(True)
+        self.setAutoDelete(False)  # 生命周期由 _workers 管理
 
     def run(self) -> None:
         try:
             result = self.fn()
             self._emit(self.signals.finished, result)
         except Exception as e:  # noqa: BLE001 - 统一回传给 UI
-            _log_error(e)
+            log.error("后台任务失败：%s\n%s", e, traceback.format_exc())
             self._emit(self.signals.failed, str(e) or e.__class__.__name__)
 
     @staticmethod
@@ -55,5 +51,19 @@ def run_async(fn: Callable[[], Any], on_ok: Callable | None = None,
         worker.signals.finished.connect(on_ok)
     if on_err is not None:
         worker.signals.failed.connect(on_err)
+
+    def release(*_args) -> None:
+        # 等 UI 线程把这一轮事件处理完再释放，确保其它回调先执行
+        QTimer.singleShot(0, lambda: _workers.discard(worker))
+
+    worker.signals.finished.connect(release)
+    worker.signals.failed.connect(release)
+
+    _workers.add(worker)
     QThreadPool.globalInstance().start(worker)
     return worker
+
+
+def active_workers() -> int:
+    """测试/诊断用：当前仍被强引用的后台任务数。"""
+    return len(_workers)

@@ -1,7 +1,15 @@
 """仓库详情对话框：基本信息 + 分支列表 + 最近提交。"""
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (QDialog, QFormLayout, QHBoxLayout, QHeaderView,
-                               QLabel, QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout)
+from PySide6.QtWidgets import (
+    QDialog,
+    QFormLayout,
+    QHeaderView,
+    QLabel,
+    QTableWidget,
+    QTableWidgetItem,
+    QTabWidget,
+    QVBoxLayout,
+)
 
 from app.core.workers import run_async
 from app.models.repo import LocalRepo

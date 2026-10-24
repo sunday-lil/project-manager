@@ -1,6 +1,6 @@
 """本地仓库数据模型。"""
 from dataclasses import dataclass
-from typing import Optional, Any
+from typing import Any, Optional
 
 
 @dataclass
@@ -24,6 +24,9 @@ class RepoStatus:
 
     branch: str = ""
     is_dirty: bool = False
+    dirty_count: int = 0          # 未提交改动条数（含未跟踪文件）
     ahead: Optional[int] = None   # 本地领先远程的提交数；None 表示无跟踪分支
     behind: Optional[int] = None  # 本地落后远程的提交数
+    last_commit_at: str = ""
+    last_commit_msg: str = ""
     error: str = ""               # 非空表示读取失败（中文消息）

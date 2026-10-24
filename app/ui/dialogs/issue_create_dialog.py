@@ -1,6 +1,12 @@
 """新建 Issue 对话框。"""
-from PySide6.QtWidgets import (QDialog, QDialogButtonBox, QFormLayout, QLabel,
-                               QLineEdit, QPlainTextEdit, QVBoxLayout)
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLineEdit,
+    QPlainTextEdit,
+    QVBoxLayout,
+)
 
 
 class IssueCreateDialog(QDialog):
@@ -23,6 +29,7 @@ class IssueCreateDialog(QDialog):
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText("创建")
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setProperty("variant", "primary")
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("取消")
         buttons.accepted.connect(self._validate)
         buttons.rejected.connect(self.reject)

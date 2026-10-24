@@ -5,9 +5,9 @@ from contextlib import closing
 from datetime import datetime
 from pathlib import Path
 
-from git import Repo, GitCommandError, InvalidGitRepositoryError
+from git import GitCommandError, InvalidGitRepositoryError, Repo
 
-from app.constants import SCAN_SKIP_DIRS, SCAN_MAX_DEPTH
+from app.constants import SCAN_MAX_DEPTH, SCAN_SKIP_DIRS
 from app.core.db import get_connection
 from app.models.repo import LocalRepo, RepoStatus
 
@@ -106,13 +106,23 @@ def get_status(path: str) -> RepoStatus:
             except TypeError:  # 分离头指针
                 branch = "HEAD 分离"
             st.branch = branch
-            st.is_dirty = repo.is_dirty(untracked_files=True)
-            if branch != "HEAD 分离":
+            porcelain = repo.git.status("--porcelain")
+            changes = [line for line in porcelain.splitlines() if line.strip()]
+            st.is_dirty = bool(changes)
+            st.dirty_count = len(changes)
+            if repo.head.is_valid():
+                commit = repo.head.commit
+                st.last_commit_at = datetime.fromtimestamp(commit.committed_date).strftime("%m-%d %H:%M")
+                st.last_commit_msg = commit.message.strip().splitlines()[0] if commit.message.strip() else ""
+            if branch != "HEAD 分离" and repo.head.is_valid():
                 tracking = repo.active_branch.tracking_branch()
                 if tracking is not None:
-                    counts = repo.git.rev_list("--left-right", "--count",
-                                               f"{branch}...{tracking.name}").split()
-                    st.ahead, st.behind = int(counts[0]), int(counts[1])
+                    try:
+                        counts = repo.git.rev_list("--left-right", "--count",
+                                                   f"{branch}...{tracking.name}").split()
+                        st.ahead, st.behind = int(counts[0]), int(counts[1])
+                    except (GitCommandError, ValueError):  # 远程引用尚未 fetch
+                        st.ahead, st.behind = None, None
     except InvalidGitRepositoryError:
         st.error = "不是有效的 git 仓库"
     except GitCommandError as e:
@@ -160,3 +170,17 @@ def fetch(path: str) -> None:
             repo.remotes[0].fetch()
     except GitCommandError as e:
         raise RuntimeError(f"fetch 失败（网络问题或无权限）：{(e.stderr or '')[:200]}") from e
+
+
+def pull(path: str) -> str:
+    """git pull --ff-only；返回简短结果，冲突/分叉时提示手动处理。"""
+    try:
+        with Repo(path) as repo:
+            if not repo.remotes:
+                raise RuntimeError("该仓库没有配置远程地址")
+            out = repo.git.pull("--ff-only")
+            return (out or "已是最新").strip().splitlines()[0][:120]
+    except GitCommandError as e:
+        detail = (e.stderr or "").strip().splitlines()
+        hint = detail[-1] if detail else "网络问题或无权限"
+        raise RuntimeError(f"pull 失败：{hint[:160]}；如有本地提交请手动合并") from e

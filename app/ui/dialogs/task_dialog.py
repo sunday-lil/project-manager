@@ -1,9 +1,16 @@
 """新建/编辑任务表单。"""
-from datetime import date
 
 from PySide6.QtCore import QDate
-from PySide6.QtWidgets import (QComboBox, QDateEdit, QDialog, QDialogButtonBox,
-                               QFormLayout, QLabel, QLineEdit, QPlainTextEdit, QVBoxLayout)
+from PySide6.QtWidgets import (
+    QComboBox,
+    QDateEdit,
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QLineEdit,
+    QPlainTextEdit,
+    QVBoxLayout,
+)
 
 from app.constants import PRIORITY_LABELS, STATUS_LABELS, Priority, TaskStatus
 from app.models.task import Task
@@ -12,7 +19,8 @@ _EMPTY_DATE = QDate(2000, 1, 1)  # QDateEdit 最小值代表"无截止日期"
 
 
 class TaskDialog(QDialog):
-    def __init__(self, repos: list, task: Task | None = None, parent=None):
+    def __init__(self, repos: list, task: Task | None = None, parent=None,
+                 default_repo_id: int | None = None, default_status: str | None = None):
         super().__init__(parent)
         self.task = task
         self.setWindowTitle("编辑任务" if task else "新建任务")
@@ -58,6 +66,7 @@ class TaskDialog(QDialog):
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.button(QDialogButtonBox.StandardButton.Ok).setText("保存")
+        buttons.button(QDialogButtonBox.StandardButton.Ok).setProperty("variant", "primary")
         buttons.button(QDialogButtonBox.StandardButton.Cancel).setText("取消")
         buttons.accepted.connect(self._validate)
         buttons.rejected.connect(self.reject)
@@ -68,6 +77,12 @@ class TaskDialog(QDialog):
 
         if task:
             self._fill_form()
+        else:
+            if default_status in TaskStatus.ALL:
+                self.status_box.setCurrentIndex(TaskStatus.ALL.index(default_status))
+            idx = self.repo_box.findData(default_repo_id)
+            if idx >= 0:
+                self.repo_box.setCurrentIndex(idx)
 
     def _fill_form(self) -> None:
         t = self.task
