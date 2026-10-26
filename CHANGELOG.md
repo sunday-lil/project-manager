@@ -14,7 +14,8 @@
 - **安全**：GitHub Token 改用 Windows DPAPI 加密（`GITHUB_TOKEN_DPAPI`），自动迁移旧明文与数据库旧值；设置页不再回显 Token
 - **数据**：schema v2（`completed_at` + 索引 + 自动回填）；升级前强制备份；启动时每日快照、保留 10 份
 - **稳定性**：单实例锁、滚动日志、未捕获异常落盘、窗口几何与最后页面记忆、主题/扫描目录持久化
-- **工程**：pytest 测试套件（迁移 / 任务 / 统计 / 仓库 / 加密 / 线程 / UI 冒烟）、ruff、演示数据与截图脚本、README / CHANGELOG
+- **工程**：pytest 测试套件（迁移 / 任务 / 统计 / 仓库 / 加密 / 线程 / UI 冒烟）、`ruff.toml`、演示数据与截图脚本、README / CHANGELOG
+- **文档**：README 重写（安装、升级、数据隐私、已知限制）；新增 [使用指南](docs/USAGE.md) 与 [架构说明](docs/ARCHITECTURE.md)，覆盖每页操作、备份恢复、FAQ、数据模型、线程模型与测试策略
 
 ### 修复
 
@@ -23,6 +24,8 @@
 - Issue/PR 列表把状态文本反解析成对象，改为把原始数据挂在 `UserRole` 上
 - 链接颜色在 Fusion 下呈土黄色；补齐 `QPalette.Link/LinkVisited`
 - 中文路径 / UTF-8 全链路检查；`.env` 保留注释与其它键
+- Windows 长路径在表格里被 Qt 截成 `C:...`；路径列改用自定义委托做中间省略
+- 启动备份频率与文档对齐为「每天最多一次」（原先 6 小时）
 
 ### 变更
 

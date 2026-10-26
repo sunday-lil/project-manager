@@ -90,7 +90,7 @@ class GithubService:
                     continue
                 out.append({"number": it.number, "title": it.title, "state": it.state,
                             "author": it.user.login if it.user else "",
-                            "labels": ",".join(l.name for l in it.labels),
+                            "labels": ",".join(label.name for label in it.labels),
                             "updated_at": it.updated_at.strftime("%m-%d %H:%M"),
                             "url": it.html_url})
             return out
@@ -133,7 +133,7 @@ class GithubService:
                                  "created_at": c.created_at.strftime("%Y-%m-%d %H:%M")})
             return {"number": it.number, "title": it.title, "state": it.state,
                     "author": it.user.login if it.user else "",
-                    "labels": [l.name for l in it.labels],
+                    "labels": [label.name for label in it.labels],
                     "body": it.body or "", "url": it.html_url,
                     "updated_at": it.updated_at.strftime("%Y-%m-%d %H:%M"),
                     "comments": comments}
@@ -186,6 +186,6 @@ class GithubService:
     def repo_labels(self, owner_repo: str) -> list[str]:
         """仓库现有标签名（推送任务时用于过滤）。"""
         try:
-            return [l.name for l in self._gh.get_repo(owner_repo).get_labels()]
+            return [label.name for label in self._gh.get_repo(owner_repo).get_labels()]
         except GithubException as e:
             raise RuntimeError(_friendly_error(e, "获取标签")) from e

@@ -17,7 +17,7 @@ def _latest_age_hours() -> float | None:
     return (datetime.now() - newest).total_seconds() / 3600
 
 
-def backup_db(force: bool = False, min_interval_hours: float = 6.0) -> Path | None:
+def backup_db(force: bool = False, min_interval_hours: float = 24.0) -> Path | None:
     """用 SQLite 在线备份接口复制数据库；force=False 时限制备份频率。
 
     返回备份文件路径；数据库不存在/备份失败返回 None（备份失败绝不应阻塞启动）。

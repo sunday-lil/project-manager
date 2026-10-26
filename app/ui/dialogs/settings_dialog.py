@@ -126,7 +126,7 @@ class SettingsDialog(QDialog):
         layout.addLayout(row)
 
         tip = QLabel("建议使用 fine-grained token：仅勾选需要管理的仓库，权限选 Metadata(读)、"
-                     "Issues(读写)、Pull requests(读写)、Contents(读写)。保存后离开本机也不会泄露明文。")
+                     "Issues(读写)、Pull requests(读写)。保存后离开本机也不会泄露明文。")
         tip.setWordWrap(True)
         tip.setProperty("role", "faint")
         layout.addWidget(tip)
