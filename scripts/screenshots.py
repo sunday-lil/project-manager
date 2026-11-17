@@ -3,7 +3,10 @@
 用法：python scripts/screenshots.py
 输出：docs/screenshots/*.png
 """
+import atexit
 import os
+import shutil
+import stat
 import sys
 import tempfile
 import time
@@ -35,6 +38,24 @@ TODAY = date.today()
 ACTOR = Actor("Moxuan", "moxuan@example.com")
 
 
+def _cleanup_demo() -> None:
+    """删除临时演示库（Windows 上 git 对象是只读的）。"""
+    def onerror(func, path, _exc):
+        try:
+            os.chmod(path, stat.S_IWRITE)
+        except OSError:
+            pass
+        try:
+            func(path)
+        except OSError:
+            pass
+
+    shutil.rmtree(DEMO_DIR, onerror=onerror)
+
+
+atexit.register(_cleanup_demo)
+
+
 def _write(repo: Repo, path: Path, name: str, content: str) -> None:
     target = path / name
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -57,6 +78,7 @@ def make_repo(base: Path, name: str, remote: str, dirty: bool = False) -> Path:
         (path / "app/service.py").write_text("def sync():\n    return [1, 2]\n", encoding="utf-8")
         (path / "TODO.md").write_text("- 补测试\n- 拆分路由\n", encoding="utf-8")
         (path / "app/cache.py").write_text("CACHE = {}\n", encoding="utf-8")
+    repo.close()
     return path
 
 

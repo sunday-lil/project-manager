@@ -4,6 +4,7 @@
 
 - 环境复验：Windows 11 26300.9974 / Python 3.14.7 / PySide6 6.11.2 / Git 2.56.0；20 个测试、ruff、GitHub 实际接口、截图链路全部通过
 - 更新 README 验证基线；重新生成截图；清理 pytest/ruff 缓存、`__pycache__` 与 v1 遗留 `error.log`
+- 截图脚本退出时自动清理临时演示库，避免 `%TEMP%` 堆积
 - 整理扫描根目录 10 → 4：去掉 2 个 `.git` 路径和 4 个被父目录覆盖的重复项，13 个仓库仍全部可发现
 - GitHub 仓库描述更新为 v2 定位，补充 `git` / `github` / `task-manager` topics
 
