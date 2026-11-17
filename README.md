@@ -101,6 +101,21 @@ python main.py
 
 首次使用在「设置」里填写 GitHub Token（[点此生成](https://github.com/settings/tokens)）。建议 fine-grained token，只授权需要管理的仓库，权限选 Metadata(读) + Issues(读写) + Pull requests(读写)。
 
+## 验证环境
+
+2026-11-17 在 Windows 11（build 26300.9974）复验：
+
+| 组件 | 版本 |
+| --- | --- |
+| Python | 3.14.7 |
+| PySide6 | 6.11.2 |
+| PyGithub | 2.10.0 |
+| GitPython | 3.1.62 |
+| Git | 2.56.0 |
+| pytest / ruff | 9.1.1 / 0.17.2 |
+
+结果：20 个测试通过、`ruff check` 通过、GitHub 实际仓库接口连通、截图脚本正常生成。
+
 ## 开发
 
 ```bash
